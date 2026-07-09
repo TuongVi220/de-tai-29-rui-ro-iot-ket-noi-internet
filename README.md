@@ -1,50 +1,20 @@
-Đề tài 29: Rủi ro thiết bị IoT kết nối trực tiếp Internet
-IoT SecurityOWASP ISVSSTRIDE Model
+Đề tài 29: Đánh giá Rủi ro Thiết bị IoT Kết nối Trực tiếp Internet
+Dự án nghiên cứu và phân tích các rủi ro bảo mật khi thiết bị IoT (điển hình là Camera IP) được mở cổng trực tiếp ra không gian mạng, đồng thời thiết kế giải pháp cấu hình an toàn dựa trên hướng dẫn tiêu chuẩn của OWASP, NIST và ENISA.
 
-Chào mừng đến với repository lưu trữ tài liệu nghiên cứu và thực hành của Đề tài 29: Đánh giá rủi ro thiết bị IoT khi mở cổng trực tiếp ra Internet. Dự án này được thực hiện nhằm cung cấp một cái nhìn chuyên sâu và thực tiễn về những sai lầm phổ biến trong triển khai thiết bị IoT (điển hình là Camera IP) và cách khắc phục.
+1. Thành phần và kiến trúc bảo vệ
+Hệ thống cung cấp giải pháp đồng bộ và các hàng rào phòng thủ nhiều lớp nhằm ngăn chặn rủi ro khi thiết bị IoT phải giao tiếp với Internet:
 
-Giới thiệu (Introduction)
-Sự phát triển mạnh mẽ của IoT mang lại nhiều tiện ích, nhưng một sai lầm chết người thường xuyên xảy ra ở các doanh nghiệp vừa và nhỏ (SME) hoặc người dùng gia đình là: Mở cổng thiết bị IoT (Port Forwarding) trực tiếp ra Internet.
+Che giấu bề mặt tấn công: Vô hiệu hóa tính năng Port Forwarding (NAT) và UPnP, đặt thiết bị vào VLAN nội bộ (Isolation) để cô lập khỏi mạng máy tính.
+Xác thực và phân quyền: Cấu hình Reverse Proxy đảm nhận quá trình xác thực đa yếu tố (MFA) trước khi cho phép truy cập luồng dữ liệu của thiết bị.
+Mã hóa kênh truyền: Bắt buộc mọi kết nối từ xa phải được mã hóa thông qua đường hầm ảo (VPN Gateway như OpenVPN/WireGuard) hoặc TLS 1.2+ để chống nghe lén.
+Đánh giá rủi ro chủ động: Sử dụng mô hình STRIDE để nhận diện đe dọa, đo lường điểm số nghiêm trọng bằng CVSS và ánh xạ các tiêu chí kiểm thử theo OWASP ISVS.
+2. Yêu cầu hệ thống và công cụ cần thiết
+Toàn bộ quy trình đánh giá, vẽ sơ đồ và thực hành bảo mật được dựa trên các bộ khung chuẩn và công cụ sau:
 
-Hành động này gỡ bỏ lớp bảo vệ tự nhiên của mạng nội bộ, biến thiết bị thành "con mồi" cho các công cụ dò quét toàn cầu như Shodan. Kết hợp với việc sử dụng mật khẩu mặc định, firmware cũ không được vá lỗi, thiết bị IoT dễ dàng bị chiếm quyền điều khiển, rò rỉ dữ liệu, hoặc trở thành một phần của các mạng Botnet tàn phá (ví dụ: Mirai).
-
-Repository này phân tích chi tiết bề mặt tấn công đó và đưa ra các thiết kế kiến trúc an toàn, tuân thủ các chuẩn mực quốc tế.
-
-Mục tiêu dự án (Objectives)
-
-Đánh giá rủi ro (Risk Assessment): Phân tích các vector tấn công khi mở port thiết bị dựa trên mô hình STRIDE và tính điểm CVSS.
-
-So sánh mô hình (Architecture Comparison): Xây dựng sơ đồ đối chiếu giữa việc triển khai sai (lộ lọt trực tiếp) và triển khai chuẩn bảo mật.
-
-Đề xuất giải pháp (Security Solutions): Hướng dẫn thiết lập VPN, Firewall, và Reverse Proxy/Cloud Relay có xác thực.\
-
-Chuẩn hóa quy trình (Standardization): Biên soạn Checklist cấu hình và quản lý thiết bị an toàn dựa trên OWASP.
-
-Cấu trúc Repository (Repository Structure)
-
-📁 /docs - Chứa các tài liệu tiểu luận, slide thuyết trình và báo cáo.
-
-📁 /diagrams - Chứa mã nguồn (Mermaid) và hình ảnh sơ đồ triển khai kiến trúc (sai/đúng).
-
-📁 /checklists - Chứa biểu mẫu, checklist cấu hình an toàn cho người triển khai.
-
-pham_vi_tai_san_rui_ro.md - Danh sách tài sản và Bảng phân tích ma trận rủi ro (Risk Matrix).
-
- de_cuong_tieu_luan.md - Đề cương chi tiết của tiểu luận.
- 
- Phương pháp và Tiêu chuẩn áp dụng (Methodology & Standards)
-Dự án này sử dụng các khung chuẩn bảo mật uy tín trên thế giới làm kim chỉ nam:
-
-OWASP Internet of Things Project: Nhận diện các lỗ hổng IoT phổ biến (Top 10 IoT Vulnerabilities).
-
-OWASP ISVS (IoT Security Verification Standard): Tiêu chuẩn xác minh bảo mật hệ sinh thái IoT.
-
-OWASP ISTG (IoT Security Testing Guide): Hướng dẫn kiểm thử bảo mật cho thiết bị.
-
-NISTIR 8259 & ENISA IoT Baseline: Khuyến nghị quản trị và cấu hình an toàn mạng.
-
-📝 Ví dụ kịch bản (Case Study)
-Dự án sử dụng Camera IP (IP Camera) làm thiết bị ví dụ xuyên suốt:
-
-Kịch bản lỗi: Camera IP được NAT Port 80/554 ra Internet $\rightarrow$ Attacker dùng Shodan quét IP $\rightarrow$ Brute-force mật khẩu mặc định $\rightarrow$ Chiếm quyền xem camera & leo thang đặc quyền.
-Kịch bản an toàn: Đưa Camera IP vào VLAN cô lập $\rightarrow$ Chặn toàn bộ kết nối Inbound $\rightarrow$ Yêu cầu truy cập qua OpenVPN/WireGuard Server $\rightarrow$ Attacker không thể định vị được cổng dịch vụ từ bên ngoài.
+Hạng mục	Công cụ / Tiêu chuẩn áp dụng
+Khung lý thuyết & Đánh giá	OWASP IoT Project, OWASP ISVS, OWASP ISTG
+Mô hình hóa rủi ro	Mô hình STRIDE, Hệ thống điểm CVSS v3.1
+Trực quan hóa kiến trúc mạng	Markdown, Mermaid JS
+Công cụ dò quét và kiểm thử	Nmap, Shodan (chỉ dùng cho mục đích minh họa)
+3. Hướng dẫn thực hành và triển khai cấu hình
+⚠️ Mọi thao tác dò quét, khai thác thử nghiệm (pentest) phải được thực thi cục bộ trên môi trường Lab mô phỏng (Local network) hoặc thiết bị thuộc quyền sở hữu hợp pháp. Không quét các IP công cộng trên Internet.
