@@ -19,61 +19,53 @@ Toàn bộ quy trình đánh giá, vẽ sơ đồ và thực hành bảo mật �
 ---
 ## 3. Hướng dẫn thực hành và triển khai cấu hình
 > ⚠️ Mọi thao tác dò quét, khai thác thử nghiệm (pentest) phải được thực thi **cục bộ** trên môi trường Lab mô phỏng (Local network) hoặc thiết bị thuộc quyền sở hữu hợp pháp. Không quét các IP công cộng trên Internet.
-# BẢNG TỔNG HỢP: TÀI SẢN - RỦI RO - BIỆN PHÁP & SƠ ĐỒ DFD
+>
+> # PHÂN TÍCH RỦI RO & BẢNG STRIDE / CVSS (Bản nháp)
 
-## 1. Sơ đồ Kiến trúc / DFD (Data Flow Diagram)
+## 1. Phạm vi hệ thống (System Scope)
+*   **Hệ thống phân tích:** Một thiết bị IP Camera được triển khai tại hộ gia đình hoặc văn phòng nhỏ.
+*   **Trạng thái kết nối:** Camera được kết nối với mạng nội bộ (LAN) và được người dùng cấu hình "Mở cổng" (Port Forwarding / NAT) trên Router để có thể xem video và quản lý từ xa qua Internet.
+*   **Các cổng (Ports) lộ lọt ra Internet:**
+    *   `80` hoặc `443` (Giao diện Web quản trị).
+    *   `554` (Luồng dữ liệu video RTSP).
+    *   *(Tùy chọn)* `23` (Telnet) hoặc `22` (SSH) - thường bị mở vô ý.
 
-Sơ đồ dưới đây mô tả luồng dữ liệu (Data Flow) và cấu trúc mạng của hệ thống thiết bị IoT (Camera IP) khi phơi bày ra Internet (Không an toàn) so với giải pháp bảo vệ (An toàn).
+## 2. Danh sách tài sản (Asset List)
+Nhận diện các tài sản có giá trị cần được bảo vệ trong hệ thống:
+1.  **Thông tin xác thực (Credentials):** Username và Password dùng để đăng nhập vào giao diện Web và tài khoản RTSP.
+2.  **Dữ liệu hình ảnh/video:** Các luồng video trực tiếp (Live stream) hoặc dữ liệu đã ghi lại liên quan đến quyền riêng tư của cá nhân/tổ chức.
+3.  **Tài nguyên thiết bị (CPU/RAM/Băng thông):** Sức mạnh xử lý và băng thông mạng của Camera.
+4.  **Mạng nội bộ (LAN):** Các thiết bị khác đang kết nối chung mạng với Camera IP (như máy tính, NAS).
+5.  **Hệ điều hành / Firmware:** Trạng thái nguyên bản và an toàn của hệ thống chạy trên Camera.
 
-```mermaid
-graph TD
-    subgraph Kiến trúc Không an toàn (Insecure)
-        A1[Kẻ tấn công / Attacker] -- Scan & Exploit --> B1[Router/Modem]
-        U1[Người dùng / User] -- HTTP/RTSP --> B1
-        B1 -- Port Forwarding (NAT) --> C1[Camera IP]
-        C1 -- Truy cập trái phép --> D1[(Dữ liệu Camera & Mạng LAN)]
-    end
+## 3. Ma trận STRIDE & Chấm điểm rủi ro (Risk Register)
+Dựa trên OWASP IoT Top 10, dưới đây là bảng phân tích các mối đe dọa theo mô hình STRIDE và đánh giá mức độ nghiêm trọng bằng CVSS (ước lượng):
 
-    subgraph Kiến trúc An toàn (Secure)
-        A2[Kẻ tấn công / Attacker] -- Bị chặn (Blocked) -.-x B2[Firewall / Router]
-        U2[Người dùng / User] -- Kết nối VPN (Mã hóa) --> B2
-        B2 -- Tunnel --> C2[Camera IP]
-        C2 -- Dữ liệu an toàn --> D2[(Dữ liệu Camera & Mạng LAN)]
-    end
-    
-    style A1 fill:#ffcccc,stroke:#ff0000
-    style C1 fill:#ffe6e6,stroke:#ff0000
-    style A2 fill:#ffcccc,stroke:#ff0000
-    style B2 fill:#ccffcc,stroke:#009900
-    style C2 fill:#ccffcc,stroke:#009900
-```
+| Ký tự | Mối đe dọa (Threat) | Mô tả lỗ hổng trên IP Camera lộ lọt Internet | OWASP IoT Link | Mức độ CVSS (Ước lượng) |
+| :--- | :--- | :--- | :--- | :--- |
+| **S** | Spoofing<br>*(Giả mạo)* | Kẻ tấn công sử dụng mật khẩu mặc định (admin/admin) hoặc brute-force để giả mạo chủ sở hữu đăng nhập vào giao diện Web. | T1: Mật khẩu yếu/Mặc định | **Cao (7.5 - 8.5)**<br>*(Dễ khai thác, tác động lớn)* |
+| **T** | Tampering<br>*(Thay đổi)* | Kẻ tấn công lợi dụng giao diện Web bị lỗi để tải lên một bản cập nhật Firmware giả mạo (chứa mã độc) nhằm cài cắm backdoor. | T3: Các dịch vụ mạng không an toàn | **Nghiêm trọng (9.0 - 9.8)**<br>*(Mất kiểm soát thiết bị)* |
+| **R** | Repudiation<br>*(Chối bỏ)* | Thiết bị Camera không có chức năng lưu lại lịch sử truy cập (Log), dẫn đến việc khi bị hack, quản trị viên không có dấu vết để điều tra. | T9: Thiết lập mặc định không an toàn | **Thấp (3.0 - 4.0)**<br>*(Tác động gián tiếp)* |
+| **I** | Information Disclosure<br>*(Lộ lọt thông tin)*| Luồng video (RTSP) hoặc trang đăng nhập Web không sử dụng mã hóa (chỉ dùng HTTP/RTSP thường). Kẻ tấn công có thể chặn bắt (Sniffing) dữ liệu trên mạng. | T4: Thiếu mã hóa dữ liệu | **Trung bình (5.5 - 6.5)**<br>*(Phụ thuộc vị trí chặn bắt)* |
+| **D** | Denial of Service<br>*(Từ chối dịch vụ)* | Thiết bị bị lây nhiễm malware (VD: Mirai) biến thành một phần của mạng Botnet, làm nghẽn băng thông mạng hoặc đánh sập chính Camera. | T3 & T6: Thiếu cơ chế bảo mật | **Cao (7.0 - 8.0)**<br>*(Mất tính khả dụng)* |
+| **E** | Elevation of Privilege<br>*(Leo thang đặc quyền)*| Giao diện Web có lỗi Injection (VD: Command Injection). Kẻ tấn công gửi payload qua HTTP để chiếm quyền root trên hệ điều hành Linux của Camera, từ đó làm bàn đạp tấn công mạng LAN. | T2: Giao diện không an toàn | **Nghiêm trọng (9.0 - 10.0)**<br>*(Tấn công sâu vào mạng)* |
 
-## 2. Bảng tích hợp: Tài sản - Rủi ro - Biện pháp (Asset - Risk - Mitigation Table)
+## 4. Checklist giảm thiểu rủi ro (Phiên bản nháp)
+Đây là danh sách kiểm tra các biện pháp cấu hình an toàn, được trích xuất từ các khuyến nghị của OWASP ISTG:
 
-| STT | Tài sản (Asset) | Rủi ro / Mối đe dọa (Risk/Threat) | Hậu quả (Impact) | Biện pháp giảm thiểu (Mitigation) |
-| :-- | :--- | :--- | :--- | :--- |
-| **1** | **Thông tin đăng nhập** (Username/Password) | Kẻ tấn công dò quét (Bruteforce) mật khẩu mặc định qua giao diện Web lộ lọt Internet. (OWASP T1, T2) | Mất quyền kiểm soát hệ thống; lộ lọt video. | Ép đổi mật khẩu khi thiết lập ban đầu; sử dụng mật khẩu mạnh; bật tính năng khóa tài khoản sau 5 lần nhập sai. |
-| **2** | **Dữ liệu Video/Âm thanh** (Media Stream) | Luồng RTSP hoặc HTTP truyền tải không được mã hóa (Plaintext), bị chặn bắt (Sniffing/MitM) (OWASP T4). | Lộ lọt quyền riêng tư nghiêm trọng của người dùng. | Triển khai HTTPS cho giao diện Web; sử dụng RTSPS hoặc VPN để mã hóa toàn bộ đường truyền. |
-| **3** | **Tài nguyên thiết bị** (CPU, Băng thông) | Thiết bị bị lây nhiễm phần mềm độc hại (Malware/Botnet như Mirai) qua cổng Telnet/SSH đang mở hớ hênh (OWASP T3). | Thiết bị chậm, sập; trở thành nguồn đi tấn công DDoS. | Vô hiệu hóa các cổng/dịch vụ không sử dụng (Telnet, SSH, UPnP). Đặt Firewall chặn truy cập từ IP lạ. |
-| **4** | **Hệ điều hành / Firmware** | Lỗ hổng bảo mật (CVE) trong Firmware cũ bị khai thác để thực thi mã từ xa (RCE) (OWASP T2, T3). | Hacker chiếm đặc quyền Root, cài cắm Backdoor dai dẳng. | Bật tính năng tự động cập nhật Firmware (OTA); vô hiệu hóa giao diện dòng lệnh không bảo mật. |
-| **5** | **Mạng nội bộ** (LAN) | Camera IP trở thành "bàn đạp" (Pivot point) để tấn công các thiết bị khác trong cùng mạng LAN. | Toàn bộ mạng bị xâm nhập, lây nhiễm Ransomware. | Cô lập Camera vào một mạng VLAN khách (Guest VLAN) riêng biệt; cấm Camera kết nối ngược lại các thiết bị nội bộ. |
+### 4.1. Về mặt Mạng lưới (Network & Exposure)
+- [ ] **KHÔNG** mở cổng (Port Forwarding/NAT) thiết bị IP Camera trực tiếp ra ngoài Internet.
+- [ ] Vô hiệu hóa tính năng **UPnP** (Universal Plug and Play) trên Router để ngăn thiết bị tự động mở cổng.
+- [ ] Sử dụng **VPN (Virtual Private Network)** trên Router để kết nối an toàn từ xa thay vì truy cập trực tiếp vào Camera.
 
-## 3. Checklist Cấu hình an toàn (Phiên bản nháp)
+### 4.2. Về Xác thực & Ủy quyền (Authentication)
+- [ ] Ngay khi cài đặt, **THAY ĐỔI** mật khẩu mặc định của thiết bị. Sử dụng mật khẩu mạnh (trên 12 ký tự, bao gồm số và ký tự đặc biệt).
+- [ ] Thiết lập tài khoản khách (Guest/View only) cho những người chỉ cần xem video, KHÔNG dùng tài khoản Admin cho nhu cầu xem hàng ngày.
+- [ ] Đổi tên tài khoản mặc định "admin" thành một tên khác (nếu firmware cho phép).
 
-Dưới đây là Checklist dành cho người dùng cuối hoặc kỹ thuật viên khi lắp đặt thiết bị IoT để ngăn ngừa các rủi ro trên:
+### 4.3. Về Quản lý thiết bị & Dịch vụ (Services & Maintenance)
+- [ ] Tắt toàn bộ các dịch vụ mạng không sử dụng (Telnet, SSH, FTP) trong phần cài đặt của Camera.
+- [ ] Bật chế độ truy cập HTTPS và RTSPS (có mã hóa TLS/SSL) nếu Camera hỗ trợ.
+- [ ] Kiểm tra và cập nhật Firmware lên phiên bản mới nhất từ trang chủ của nhà sản xuất.
+- [ ] Cấu hình khởi động lại (Reboot) định kỳ tự động để xóa bỏ mã độc chạy trên RAM (như biến thể Mirai).
 
-### A. Thiết lập mạng & Tường lửa
-- [ ] **Tắt tính năng UPnP trên Router:** Không cho phép Camera IP tự động mở cổng ra ngoài Internet.
-- [ ] **Không Port Forwarding trực tiếp:** Tuyệt đối không NAT cổng 80, 443, 554, 23, 22 của Camera thẳng ra Internet.
-- [ ] **Sử dụng VPN / Reverse Proxy:** Cấu hình VPN (như WireGuard, OpenVPN) trên Router hoặc NAS để kết nối về nhà trước khi xem Camera.
-- [ ] **Cô lập thiết bị (VLAN):** Đưa toàn bộ thiết bị IoT (Camera, Smart Home) vào một mạng VLAN tách biệt với mạng dùng cho máy tính làm việc.
-
-### B. Quản lý Tài khoản & Quyền truy cập
-- [ ] **Đổi mật khẩu thiết bị ngay lập tức:** Không bao giờ dùng mật khẩu mặc định (`admin/admin`, `123456`).
-- [ ] **Sử dụng tài khoản phân quyền:** Chỉ tạo tài khoản có quyền "Xem" (Viewer) để sử dụng hàng ngày trên điện thoại, giữ tài khoản Admin ở trạng thái offline.
-- [ ] **Tắt các giao thức không dùng:** Truy cập vào phần cài đặt mạng của Camera và tắt bỏ Telnet, FTP, SSH, ONVIF (nếu không dùng đầu ghi).
-
-### C. Duy trì & Cập nhật
-- [ ] **Kiểm tra bản vá:** Truy cập website nhà sản xuất tối thiểu 6 tháng/lần để kiểm tra và tải về Firmware mới nhất.
-- [ ] **Reboot định kỳ:** Bật tính năng "Auto Reboot" hàng tuần trên Camera (giúp làm mới bộ nhớ RAM, loại bỏ một số mã độc hoạt động trên bộ nhớ tạm).
-- [ ] **Đăng ký nhận thông báo:** Đăng ký email trên trang chủ hãng để nhận thông báo khẩn cấp khi có lỗ hổng 0-day bị phát hiện.
