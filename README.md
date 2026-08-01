@@ -23,8 +23,7 @@
 - Nmap / Zenmap (Quét mạng và phát hiện dịch vụ)
 - Wireshark (Bắt và phân tích luồng gói tin)
 - Burp Suite (Thực thi tấn công vét cạn Brute-force)
-- VPN (OpenVPN / WireGuard)
-- HTTP / Basic Authentication
+
 
 ---
 
