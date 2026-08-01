@@ -18,7 +18,6 @@ Bộ nộp chính thức gồm báo cáo DOCX, bản PDF xuất từ cùng báo 
 ```text
 configs/                    Bộ Checklist cấu hình bảo mật (VPN/VLAN, tắt NAT)
 images/                     Sơ đồ kiến trúc mạng, biểu đồ lý thuyết
-references/                 Danh mục tài liệu tham khảo và chuẩn OWASP
 report/                     Báo cáo tiểu luận DOCX và PDF cuối kỳ
 results/                    Minh chứng thực nghiệm (Log Nmap, Wireshark, Burp Suite)
 src/                        Mã nguồn Python giả lập Web Server (IP Camera)
