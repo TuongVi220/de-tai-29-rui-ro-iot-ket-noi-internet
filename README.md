@@ -1,4 +1,4 @@
-# Đánh giá rủi ro thiết bị IoT kết nối trực tiếp Internet
+[# Đánh giá rủi ro thiết bị IoT kết nối trực tiếp Internet
 
 ## Giới thiệu
 
@@ -40,3 +40,4 @@
 ├── src/             # Lưu trữ mã nguồn Python giả lập IP Camera
 └── README.md        # File hướng dẫn và giới thiệu đề tài
 ```
+](https://github.com/hv6z/n20-secure-firmware-update-iot)
